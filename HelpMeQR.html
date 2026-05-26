@@ -183,7 +183,7 @@
 
         // 3. Extracción de ruta dinámica inteligente (Soporta USB 'file:' e Internet 'http/https')
         const rutaLimpia = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-        const urlDestinoQR = rutaLimpia + "/panel.html?medico_scan=" + datosEncriptados;
+        const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + datosEncriptados;
 
         // 4. Generación del QR optimizado para escaneos rápidos
         new QRCode(document.getElementById("qrcode"), {
