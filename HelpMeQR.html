@@ -139,7 +139,7 @@
         <div class="qr-container">
             <div id="qrcode"></div>
             <p style="font-size: 13px; color: #555; margin-top: 15px; max-width: 90%;">
-                <strong>Nota Médica:</strong> Al escanear este código en la calle, el personal médico verá la información de emergencia inmediatamente sin contraseñas.
+                <strong>Nota Médica:</strong> Al escanear este código, el personal médico verá la información de emergencia inmediatamente sin contraseñas.
             </p>
         </div>
 
@@ -151,56 +151,55 @@
 
 <script>
     function guardarYGenerar(event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    const usuario = {
-        id: 'HM-' + Math.floor(Math.random() * 90000 + 10000),
-        nombre: document.getElementById('nombre').value,
-        nacimiento: document.getElementById('nacimiento').value,
-        sangre: document.getElementById('sangre').value,
-        alergias: document.getElementById('alergias').value || "Ninguna",
-        enfermedades: document.getElementById('enfermedades').value || "Ninguna",
-        medicamentos: document.getElementById('medicamentos').value || "Ninguno",
-        c1_nombre: document.getElementById('c1-nombre').value,
-        c1_parentesco: document.getElementById('c1-parentesco').value,
-        c1_telefono: document.getElementById('c1-telefono').value,
-        c2_nombre: document.getElementById('c2-nombre').value,
-        c2_parentesco: document.getElementById('c2-parentesco').value,
-        c2_telefono: document.getElementById('c2-telefono').value,
-        fecha_registro: new Date().toLocaleDateString()
-    };
+        // Crear el objeto con los datos del formulario
+        const usuario = {
+            id: 'HM-' + Math.floor(Math.random() * 90000 + 10000),
+            nombre: document.getElementById('nombre').value,
+            nacimiento: document.getElementById('nacimiento').value,
+            sangre: document.getElementById('sangre').value,
+            alergias: document.getElementById('alergias').value || "Ninguna",
+            enfermedades: document.getElementById('enfermedades').value || "Ninguna",
+            medicamentos: document.getElementById('medicamentos').value || "Ninguno",
+            c1_nombre: document.getElementById('c1-nombre').value,
+            c1_parentesco: document.getElementById('c1-parentesco').value,
+            c1_telefono: document.getElementById('c1-telefono').value,
+            c2_nombre: document.getElementById('c2-nombre').value,
+            c2_parentesco: document.getElementById('c2-parentesco').value,
+            c2_telefono: document.getElementById('c2-telefono').value,
+            fecha_registro: new Date().toLocaleDateString()
+        };
 
-    // 1. Guardar en el Historial Interno de la empresa
-    let listaUsuarios = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
-    listaUsuarios.push(usuario);
-    localStorage.setItem('usuariosHelpMe', JSON.stringify(listaUsuarios));
+        // 1. Guardar en el Historial Interno (LocalStorage)
+        let listaUsuarios = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
+        listaUsuarios.push(usuario);
+        localStorage.setItem('usuariosHelpMe', JSON.stringify(listaUsuarios));
 
-    // 2. Encriptar todos los datos
-    const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
-    
-    document.getElementById("qrcode").innerHTML = "";
+        // 2. Encriptar los datos a formato Base64 de forma segura
+        const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
+        
+        document.getElementById("qrcode").innerHTML = "";
 
-    let urlDestinoQR = "";
-    
-    // Detector inteligente que corrige las rutas automáticamente de mayúsculas a minúsculas
-    if (window.location.protocol === "file:") {
-        urlDestinoQR = "https://itsalann9.github.io/ayudameqr/panel.html?medico_scan=" + datosEncriptados;
-    } else {
-        const urlBase = window.location.href.split('HelpMeQR.html')[0].toLowerCase();
-        urlDestinoQR = urlBase + "panel.html?medico_scan=" + datosEncriptados;
+        // 3. Extracción de ruta dinámica inteligente (Soporta USB 'file:' e Internet 'http/https')
+        const rutaLimpia = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        const urlDestinoQR = rutaLimpia + "/panel.html?medico_scan=" + datosEncriptados;
+
+        // 4. Generación del QR optimizado para escaneos rápidos
+        new QRCode(document.getElementById("qrcode"), {
+            text: urlDestinoQR,
+            width: 220,
+            height: 220,
+            correctLevel : QRCode.CorrectLevel.M
+        });
+
+        // Alternar vistas de la interfaz
+        document.getElementById('view-form').classList.add('hidden');
+        document.getElementById('view-qr').classList.remove('hidden');
     }
 
-    new QRCode(document.getElementById("qrcode"), {
-        text: urlDestinoQR,
-        width: 220,
-        height: 220,
-        correctLevel : QRCode.CorrectLevel.H
-    });
-
-    document.getElementById('view-form').classList.add('hidden');
-    document.getElementById('view-qr').classList.remove('hidden');
-}
     function regresarAFormulario(limpiar) {
+        // Si se pide registrar uno nuevo, el formulario se limpia automáticamente
         if (limpiar) document.querySelector('form').reset();
         document.getElementById('view-qr').classList.add('hidden');
         document.getElementById('view-form').classList.remove('hidden');
