@@ -185,7 +185,7 @@
        Reemplaza 'tuservidor.com' por el dominio real donde subas tu proyecto.
        De este modo, al escanear con cualquier celular abrirá los datos en internet.
        ========================================================================= */
-    const urlDestinoQR = "https://github.com/itsalann9/HelpMeQR/blob/main/panel.html" + datosEncriptados;
+    const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + datosEncriptados;
 
     new QRCode(document.getElementById("qrcode"), {
         text: urlDestinoQR,
