@@ -180,13 +180,12 @@
     
     document.getElementById("qrcode").innerHTML = "";
 
-    /* ==========================================
-       TRUCO DE URL DINÁMICA:
-       window.location.href obtiene la URL actual (ya sea local o de internet)
-       y reemplaza "index.html" por "panel.html" automáticamente.
-       ========================================== */
-    const urlBase = window.location.href.split('index.html')[0];
-    const urlDestinoQR = urlBase + "panel.html?medico_scan=" + datosEncriptados;
+    /* =========================================================================
+       NOTA IMPORTANTE: 
+       Reemplaza 'tuservidor.com' por el dominio real donde subas tu proyecto.
+       De este modo, al escanear con cualquier celular abrirá los datos en internet.
+       ========================================================================= */
+    const urlDestinoQR = "https://tuservidor.com/panel.html?medico_scan=" + datosEncriptados;
 
     new QRCode(document.getElementById("qrcode"), {
         text: urlDestinoQR,
