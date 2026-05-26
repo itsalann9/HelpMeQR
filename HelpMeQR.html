@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpMe QR - Registro de Llaveros</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #dc3545;
+            --success-color: #28a745;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        .header { text-align: center; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { color: var(--primary-color); margin: 0; font-size: 26px; }
+        .header p { margin: 5px 0 0 0; color: #666; font-size: 14px; font-style: italic; }
+        h3 { color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; margin-top: 20px; font-size: 17px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 60px; resize: vertical; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .contact-section { background: #f9fbfd; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+        .notice-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; font-size: 12px; margin: 15px 0; border-radius: 4px; }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; width: 100%; cursor: pointer; }
+        .hidden { display: none; }
+        .qr-container { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 10px; }
+        .btn-nav { background-color: #6c757d; margin-top: 10px; color: white; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 6px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="view-form">
+        <div class="header">
+            <h1>HelpMe QR</h1>
+            <p>Registro de Información Médica</p>
+        </div>
+
+        <form onsubmit="guardarYGenerar(event)">
+            <h3>Datos Personales</h3>
+            <div class="form-group">
+                <label>Nombre Completo:</label>
+                <input type="text" id="nombre" required placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Fecha de Nacimiento:</label>
+                <input type="date" id="nacimiento" required>
+            </div>
+
+            <h3>Datos Médicos</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Tipo de Sangre:</label>
+                    <select id="sangre" required>
+                        <option value="">Selecciona...</option>
+                        <option value="O+">O Rh +</option> <option value="O-">O Rh -</option>
+                        <option value="A+">A Rh +</option> <option value="A-">A Rh -</option>
+                        <option value="B+">B Rh +</option> <option value="B-">B Rh -</option>
+                        <option value="AB+">AB Rh +</option> <option value="AB-">AB Rh -</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Alergias:</label>
+                    <textarea id="alergias" placeholder="Medicamentos, alimentos o 'Ninguna'"></textarea>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Enfermedades:</label>
+                    <textarea id="enfermedades" placeholder="Diabetes, Hipertensión o 'Ninguna'"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Medicamentos:</label>
+                    <textarea id="medicamentos" placeholder="Uso diario o 'Ninguno'"></textarea>
+                </div>
+            </div>
+
+            <h3>Contactos de Emergencia</h3>
+            <div class="contact-section">
+                <strong>Contacto 1</strong>
+                <div class="grid-2" style="margin-top:5px;">
+                    <input type="text" id="c1-nombre" required placeholder="Nombre">
+                    <input type="text" id="c1-parentesco" required placeholder="Parentesco">
+                </div>
+                <input type="tel" id="c1-telefono" required placeholder="Teléfono" style="margin-top:5px;">
+            </div>
+
+            <div class="contact-section">
+                <strong>Contacto 2</strong>
+                <div class="grid-2" style="margin-top:5px;">
+                    <input type="text" id="c2-nombre" required placeholder="Nombre">
+                    <input type="text" id="c2-parentesco" required placeholder="Parentesco">
+                </div>
+                <input type="tel" id="c2-telefono" required placeholder="Teléfono" style="margin-top:5px;">
+            </div>
+
+            <div class="notice-box">
+                <strong>Aviso:</strong> Datos protegidos para uso exclusivo de emergencias.
+            </div>
+
+            <button type="submit" style="background-color: var(--primary-color);">Generar Llavero QR</button>
+        </form>
+        
+        <a href="panel.html" class="btn-nav" style="background-color: #4b5563; font-size: 13px; margin-top:20px;">🔒 Ver historial de registros empresariales</a>
+    </div>
+
+    <div id="view-qr" class="hidden">
+        <div class="header">
+            <h1 style="color: var(--success-color);">¡Llavero Vinculado!</h1>
+            <p>Código listo para imprimir o grabar en resina</p>
+        </div>
+
+        <div class="qr-container">
+            <div id="qrcode"></div>
+            <p style="font-size: 13px; color: #555; margin-top: 15px; max-width: 90%;">
+                <strong>Nota Médica:</strong> Al escanear este código en la calle, el personal médico verá la información de emergencia inmediatamente sin contraseñas.
+            </p>
+        </div>
+
+        <button onclick="regresarAFormulario(false)" style="background-color: #6c757d; margin-top: 20px;">Modificar Datos</button>
+        <button onclick="regresarAFormulario(true)" style="background-color: var(--success-color); margin-top: 10px;">Registrar Otro Nuevo</button>
+    </div>
+
+</div>
+
+<script>
+    function guardarYGenerar(event) {
+    event.preventDefault();
+
+    const usuario = {
+        id: 'HM-' + Math.floor(Math.random() * 90000 + 10000),
+        nombre: document.getElementById('nombre').value,
+        nacimiento: document.getElementById('nacimiento').value,
+        sangre: document.getElementById('sangre').value,
+        alergias: document.getElementById('alergias').value || "Ninguna",
+        enfermedades: document.getElementById('enfermedades').value || "Ninguna",
+        medicamentos: document.getElementById('medicamentos').value || "Ninguno",
+        c1_nombre: document.getElementById('c1-nombre').value,
+        c1_parentesco: document.getElementById('c1-parentesco').value,
+        c1_telefono: document.getElementById('c1-telefono').value,
+        c2_nombre: document.getElementById('c2-nombre').value,
+        c2_parentesco: document.getElementById('c2-parentesco').value,
+        c2_telefono: document.getElementById('c2-telefono').value,
+        fecha_registro: new Date().toLocaleDateString()
+    };
+
+    // 1. Guardar en el Historial Interno de la empresa
+    let listaUsuarios = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
+    listaUsuarios.push(usuario);
+    localStorage.setItem('usuariosHelpMe', JSON.stringify(listaUsuarios));
+
+    // 2. Encriptar todos los datos
+    const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
+    
+    document.getElementById("qrcode").innerHTML = "";
+
+    /* ==========================================
+       TRUCO DE URL DINÁMICA:
+       window.location.href obtiene la URL actual (ya sea local o de internet)
+       y reemplaza "index.html" por "panel.html" automáticamente.
+       ========================================== */
+    const urlBase = window.location.href.split('index.html')[0];
+    const urlDestinoQR = urlBase + "panel.html?medico_scan=" + datosEncriptados;
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: urlDestinoQR,
+        width: 220,
+        height: 220,
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+    document.getElementById('view-form').classList.add('hidden');
+    document.getElementById('view-qr').classList.remove('hidden');
+}
+    function regresarAFormulario(limpiar) {
+        if (limpiar) document.querySelector('form').reset();
+        document.getElementById('view-qr').classList.add('hidden');
+        document.getElementById('view-form').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>

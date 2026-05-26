@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpMe QR - Sistema Móvil</title>
+    <style>
+        :root {
+            --bg-principal: #0f172a;
+            --bg-tarjeta: #1e293b;
+            --bg-input: #334155;
+            --texto-blanco: #f8fafc;
+            --texto-gris: #94a3b8;
+            --color-primario: #3b82f6;
+            --color-urgencia: #ef4444;
+            --color-exito: #10b981;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-principal); color: var(--texto-blanco); margin: 0; padding: 0; min-height: 100vh; }
+        
+        /* Vista de Urgencia Médica Directa (Sin contraseña) */
+        .emergency-banner { background-color: var(--color-urgencia); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; position: sticky; top:0; z-index:10; }
+        
+        /* Pantalla de bloqueo (Solo para ver la lista de clientes registrados) */
+        .login-screen { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-principal); z-index: 9999; padding: 20px; box-sizing: border-box; }
+        .login-card { background: var(--bg-tarjeta); padding: 30px 20px; border-radius: 16px; text-align: center; width: 100%; max-width: 350px; }
+        .login-card input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: var(--bg-input); color: white; text-align: center; margin-bottom: 15px; font-size: 16px; box-sizing: border-box;}
+        .login-card button { width: 100%; padding: 12px; background: var(--color-primario); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* Interfaz Base */
+        .navbar { background: var(--bg-tarjeta); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .main-content { padding: 15px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
+        .search-input { width: 100%; padding: 12px; background: var(--bg-tarjeta); border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 15px; box-sizing: border-box; }
+        
+        /* Tarjetas Fichas de Pacientes */
+        .paciente-card { background: var(--bg-tarjeta); border-radius: 14px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--color-primario); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .paciente-card.escaneado { border-left-color: var(--color-urgencia); margin-top: 15px;}
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
+        .paciente-nombre { font-size: 18px; font-weight: bold; margin: 0; }
+        .badge-sangre { background: var(--color-urgencia); padding: 4px 10px; border-radius: 6px; font-weight: bold; }
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px; }
+        .info-item { background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; }
+        .info-label { font-size: 11px; color: var(--texto-gris); font-weight: bold; text-transform: uppercase; }
+        .contactos-box { margin-top: 12px; background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 8px; }
+        .contacto-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 5px 0; }
+        .btn-llamar { background: var(--color-exito); color: white; text-decoration: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="doctor-view" class="hidden">
+        <div class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
+        <div class="main-content" id="contenedor-qr-directo">
+            </div>
+    </div>
+
+    <div id="lock-screen" class="login-screen hidden">
+        <div class="login-card">
+            <div style="font-size:35px; margin-bottom:10px;">🔒</div>
+            <h2>Filtro de Seguridad</h2>
+            <p style="color: var(--texto-gris); font-size:13px;">Acceso restringido a administradores de HelpMe QR</p>
+            <input type="password" id="admin-pass" placeholder="Contraseña de la Empresa">
+            <button onclick="validarPassword()">Acceder al Historial</button>
+            <p id="error-txt" style="color:var(--color-urgencia); font-size:13px; margin-top:10px;" class="hidden">Clave incorrecta</p>
+        </div>
+    </div>
+
+    <div id="admin-view" class="hidden">
+        <div class="navbar">
+            <span style="font-weight:bold;">📋 Registro General de Ventas</span>
+            <a href="index.html" style="background:#475569; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:13px;">+ Nuevo Registro</a>
+        </div>
+        <div class="main-content">
+            <input type="text" id="search-box" class="search-input" placeholder="🔍 Buscar cliente por nombre..." oninput="filtrarClientes()">
+            <div id="lista-historial"></div>
+            <button onclick="if(confirm('¿Borrar todo?')) {localStorage.removeItem('usuariosHelpMe'); cargarAdmin();}" style="background:none; border: 1px dashed var(--color-urgencia); color:var(--color-urgencia); width:100%; padding:10px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;">Vaciar Historial</button>
+        </div>
+    </div>
+
+<script>
+    const CLAVE_EMPRESA = "12345";
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const scanData = urlParams.get('medico_scan');
+
+        if (scanData) {
+            // ¡CASO QR DETECTADO! Mostrar directo al doctor sin pedir contraseña
+            try {
+                const paciente = JSON.parse(decodeURIComponent(escape(atob(scanData))));
+                document.getElementById('doctor-view').classList.remove('hidden');
+                
+                document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(paciente, true);
+            } catch (e) {
+                alert("Error al leer el código QR Médico.");
+            }
+        } else {
+            // CASO NORMAL: Es la empresa queriendo ver el historial de registros. Pedir clave.
+            document.getElementById('lock-screen').classList.remove('hidden');
+        }
+    }
+
+    function validarPassword() {
+        const pass = document.getElementById('admin-pass').value;
+        if (pass === CLAVE_EMPRESA) {
+            document.getElementById('lock-screen').classList.add('hidden');
+            document.getElementById('admin-view').classList.remove('hidden');
+            cargarAdmin();
+        } else {
+            document.getElementById('error-txt').classList.remove('hidden');
+            document.getElementById('admin-pass').value = '';
+        }
+    }
+
+    function cargarAdmin() {
+        const lista = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
+        const contenedor = document.getElementById('lista-historial');
+        contenedor.innerHTML = "";
+
+        if (lista.length === 0) {
+            contenedor.innerHTML = "<p style='text-align:center; color:var(--texto-gris);'>No hay clientes registrados en este teléfono.</p>";
+            return;
+        }
+
+        lista.forEach(p => {
+            contenedor.innerHTML += generarCardHTML(p, false);
+        });
+    }
+
+    function generarCardHTML(u, esEscaneoMedico) {
+        return `
+            <div class="paciente-card ${esEscaneoMedico ? 'escaneado' : ''}">
+                <div class="card-header">
+                    <div>
+                        <p class="paciente-nombre">${u.nombre}</p>
+                        <small style="color:var(--texto-gris)">ID: ${u.id} ${u.fecha_registro ? '| Registrado: '+u.fecha_registro : ''}</small>
+                    </div>
+                    <div class="badge-sangre">${u.sangre}</div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item"><span class="info-label">Nacimiento:</span><div>${u.nacimiento}</div></div>
+                    <div class="info-item" style="background:rgba(239,68,68,0.05)"><span class="info-label" style="color:#f87171">Alergias:</span><div>${u.alergias}</div></div>
+                    <div class="info-item"><span class="info-label">Enfermedades:</span><div>${u.enfermedades}</div></div>
+                    <div class="info-item"><span class="info-label">Medicamentos habituales:</span><div>${u.medicamentos}</div></div>
+                </div>
+                <div class="contactos-box">
+                    <span class="info-label" style="color:var(--color-primario)">Contactos de Emergencia</span>
+                    <div class="contacto-row">
+                        <div><strong>${u.c1_nombre}</strong> (${u.c1_parentesco})</div>
+                        <a href="tel:${u.c1_telefono}" class="btn-llamar">📞 Llamar</a>
+                    </div>
+                    <div class="contacto-row" style="margin-top:5px;">
+                        <div><strong>${u.c2_nombre}</strong> (${u.c2_parentesco})</div>
+                        <a href="tel:${u.c2_telefono}" class="btn-llamar">📞 Llamar</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function filtrarClientes() {
+        const query = document.getElementById('search-box').value.toLowerCase();
+        const lista = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
+        const contenedor = document.getElementById('lista-historial');
+        contenedor.innerHTML = "";
+
+        const filtrados = lista.filter(u => u.nombre.toLowerCase().includes(query));
+        filtrados.forEach(p => {
+            contenedor.innerHTML += generarCardHTML(p, false);
+        });
+    }
+</script>
+</body>
+</html>
