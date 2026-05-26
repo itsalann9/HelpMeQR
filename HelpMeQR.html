@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HelpMe QR - Registro de Llaveros</title>
+    <title>HelpMe QR - Registro de Informacion Medica</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -78,10 +78,10 @@
                     <label>Tipo de Sangre:</label>
                     <select id="sangre" required>
                         <option value="">Selecciona...</option>
-                        <option value="O+">O Rh +</option> <option value="O-">O Rh -</option>
-                        <option value="A+">A Rh +</option> <option value="A-">A Rh -</option>
-                        <option value="B+">B Rh +</option> <option value="B-">B Rh -</option>
-                        <option value="AB+">AB Rh +</option> <option value="AB-">AB Rh -</option>
+                        <option value="O+">O +</option> <option value="O-">O -</option>
+                        <option value="A+">A +</option> <option value="A-">A -</option>
+                        <option value="B+">B Rh +</option> <option value="B-">B -</option>
+                        <option value="AB+">AB +</option> <option value="AB-">AB -</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -121,13 +121,14 @@
             </div>
 
             <div class="notice-box">
-                <strong>Aviso:</strong> Datos protegidos para uso exclusivo de emergencias.
+                <strong>Aviso de Privacidad:</strong> Tus datos médicos son sensibles, protegidos. Solo se usan para emergencias. Al registrarte aceptas este aviso.
+                <strong>Terminos:</strong> "Información bajo responsabilidad del usuario; no sustituye atención médica".
             </div>
 
             <button type="submit" style="background-color: var(--primary-color);">Generar Llavero QR</button>
         </form>
         
-        <a href="panel.html" class="btn-nav" style="background-color: #4b5563; font-size: 13px; margin-top:20px;">🔒 Ver historial de registros empresariales</a>
+        
     </div>
 
     <div id="view-qr" class="hidden">
@@ -139,7 +140,6 @@
         <div class="qr-container">
             <div id="qrcode"></div>
             <p style="font-size: 13px; color: #555; margin-top: 15px; max-width: 90%;">
-                <strong>Nota Médica:</strong> Al escanear este código, el personal médico verá la información de emergencia inmediatamente sin contraseñas.
             </p>
         </div>
 
