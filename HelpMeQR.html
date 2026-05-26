@@ -180,19 +180,13 @@
     
     document.getElementById("qrcode").innerHTML = "";
 
-    /* =========================================================================
-       DETECTOR INTELIGENTE DE RUTA:
-       Si detecta que estás ejecutando el archivo localmente (ej: en la memoria D:/),
-       usa la ruta de internet para que el QR final SIEMPRE funcione en celulares.
-       ========================================================================= */
     let urlDestinoQR = "";
     
+    // Detector inteligente que corrige las rutas automáticamente de mayúsculas a minúsculas
     if (window.location.protocol === "file:") {
-        // Estás abriendo el archivo desde tu memoria USB o disco duro local (D:/...)
-        urlDestinoQR = "https://itsalann9.github.io/AyudaMeQR/panel.html?medico_scan=" + datosEncriptados;
+        urlDestinoQR = "https://itsalann9.github.io/ayudameqr/panel.html?medico_scan=" + datosEncriptados;
     } else {
-        // Estás usando el sistema directamente desde internet (GitHub Pages)
-        const urlBase = window.location.href.split('HelpMeQR.html')[0];
+        const urlBase = window.location.href.split('HelpMeQR.html')[0].toLowerCase();
         urlDestinoQR = urlBase + "panel.html?medico_scan=" + datosEncriptados;
     }
 
