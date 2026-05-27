@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HelpMe QR - Registro de Informacion Medica</title>
+    <title>HelpMe QR - Registro de Información Médica</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -13,6 +13,7 @@
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
             --text-color: #333333;
+            --accent-blue: #eef2f5;
         }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -27,28 +28,107 @@
         }
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             background: var(--card-bg);
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             box-sizing: border-box;
+            margin: 20px 0;
         }
-        .header { text-align: center; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; }
-        .header h1 { color: var(--primary-color); margin: 0; font-size: 26px; }
-        .header p { margin: 5px 0 0 0; color: #666; font-size: 14px; font-style: italic; }
-        h3 { color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; margin-top: 20px; font-size: 17px; }
+        .header { 
+            text-align: center; 
+            border-bottom: 2px solid var(--accent-blue); 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+        }
+        .header h1 { color: var(--primary-color); margin: 0; font-size: 28px; }
+        .header p { margin: 5px 0 0 0; color: #666; font-size: 15px; font-style: italic; }
+        
+        /* Secciones de Información de la Empresa */
+        .info-section {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 8px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 8px 5px;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .info-section ul {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .info-section li {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .info-section p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #4a5568;
+            margin: 8px 0;
+        }
+        .step-list {
+            list-style-type: none;
+            padding-left: 0 !important;
+        }
+        .step-list li {
+            background: var(--accent-blue);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Estilos del Formulario */
+        h3 { color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; margin-top: 25px; font-size: 18px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         textarea { height: 60px; resize: vertical; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
         .contact-section { background: #f9fbfd; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
-        .notice-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; font-size: 12px; margin: 15px 0; border-radius: 4px; }
-        button { background-color: var(--primary-color); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; width: 100%; cursor: pointer; }
+        .notice-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; font-size: 12px; margin: 15px 0; border-radius: 4px; line-height: 1.4; }
+        
+        button { border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; width: 100%; cursor: pointer; transition: background 0.2s; }
+        button:hover { filter: brightness(0.9); }
         .hidden { display: none; }
         .qr-container { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 10px; }
-        .btn-nav { background-color: #6c757d; margin-top: 10px; color: white; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 6px; font-weight: bold;}
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -58,7 +138,53 @@
     <div id="view-form">
         <div class="header">
             <h1>HelpMe QR</h1>
-            <p>Registro de Información Médica</p>
+            <p>Llaveros de Emergencia Inteligentes — Información Médica Instantánea</p>
+        </div>
+
+        <div class="info-section">
+            <div class="tabs">
+                <div class="tab-btn active" onclick="switchTab(event, '¿Qué es?')">¿Qué es?</div>
+                <div class="tab-btn" onclick="switchTab(event, 'ofrecemos')">¿Qué ofrecemos?</div>
+                <div class="tab-btn" onclick="switchTab(event, 'funcionamiento')">¿Cómo funciona?</div>
+                <div class="tab-btn" onclick="switchTab(event, 'objetivos')">Objetivos</div>
+            </div>
+
+            <div id="¿Qué es?" class="tab-content active">
+                <p>Nuestra empresa ofrece llaveros inteligentes de emergencia con tecnología QR, diseñados como accesorios estéticos y funcionales elaborados en resina personalizada.</p>
+                <p>Cada llavero contiene un código QR grabado que, al ser escaneado desde cualquier teléfono celular, dirige automáticamente a una página con información médica importante del usuario, combinando seguridad, innovación y diseño en un accesorio práctico para el uso diario.</p>
+            </div>
+
+            <div id="ofrecemos" class="tab-content">
+                <p><strong>Ofrecemos soluciones modernas y útiles:</strong></p>
+                <ul>
+                    <li>Llaveros personalizados en resina con distintos colores, formas y diseños.</li>
+                    <li>Código QR único y seguro para cada usuario.</li>
+                    <li>Acceso rápido a información médica vital.</li>
+                    <li>Registro preventivo de: Tipo de sangre, alergias (alimentos, medicamentos, sustancias), enfermedades/padecimientos y medicamentos habituales.</li>
+                    <li>Configuración de contactos de emergencia.</li>
+                </ul>
+            </div>
+
+            <div id="funcionamiento" class="tab-content">
+                <ul class="step-list">
+                    <li><strong>1. Registro:</strong> El cliente registra sus datos médicos y contactos de emergencia en nuestra plataforma segura.</li>
+                    <li><strong>2. Adquisición:</strong> El cliente adquiere su llavero inteligente personalizado, entregado por el personal de la empresa.</li>
+                    <li><strong>3. Vinculación:</strong> El código QR del llavero queda enlazado con la información médica registrada.</li>
+                    <li><strong>4. Escaneo:</strong> En caso de emergencia, cualquier persona o personal médico puede escanear el QR con un celular.</li>
+                    <li><strong>5. Auxilio:</strong> Automáticamente se abre la página con los datos esenciales para brindar ayuda rápida y adecuada, sin necesidad de descargar aplicaciones.</li>
+                </ul>
+            </div>
+
+            <div id="objetivos" class="tab-content">
+                <p><strong>Objetivo General:</strong> Brindar una solución innovadora y accesible que permita el acceso rápido a información médica vital en situaciones de emergencia, mediante llaveros inteligentes con código QR.</p>
+                <p><strong>Objetivos Específicos:</strong></p>
+                <ul>
+                    <li>Mejorar la atención en emergencias al proporcionar información médica inmediata.</li>
+                    <li>Ofrecer un producto que combine seguridad, tecnología y diseño estético.</li>
+                    <li>Generar tranquilidad para usuarios y sus familiares.</li>
+                    <li>Crear accesorios personalizados, prácticos y fáciles de usar para cualquier persona.</li>
+                </ul>
+            </div>
         </div>
 
         <form onsubmit="guardarYGenerar(event)">
@@ -86,48 +212,47 @@
                 </div>
                 <div class="form-group">
                     <label>Alergias:</label>
-                    <textarea id="alergias" placeholder="Medicamentos, alimentos o 'Ninguna'"></textarea>
+                    <textarea id="alergias" placeholder="Alimentos, medicamentos, sustancias o 'Ninguna'"></textarea>
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>Enfermedades:</label>
+                    <label>Enfermedades o Padecimientos:</label>
                     <textarea id="enfermedades" placeholder="Diabetes, Hipertensión o 'Ninguna'"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Medicamentos:</label>
-                    <textarea id="medicamentos" placeholder="Paracetamol, Amoxicilina o 'Ninguno"></textarea>
+                    <label>Medicamentos Habituales:</label>
+                    <textarea id="medicamentos" placeholder="Paracetamol, Amoxicilina o 'Ninguno'"></textarea>
                 </div>
             </div>
 
             <h3>Contactos de Emergencia</h3>
             <div class="contact-section">
-                <strong>Contacto 1</strong>
+                <strong>Contacto No. 1</strong>
                 <div class="grid-2" style="margin-top:5px;">
                     <input type="text" id="c1-nombre" required placeholder="Nombre">
                     <input type="text" id="c1-parentesco" required placeholder="Parentesco">
                 </div>
-                <input type="tel" id="c1-telefono" required placeholder="Teléfono" style="margin-top:5px;">
+                <input type="tel" id="c1-telefono" required placeholder="Número de teléfono" style="margin-top:5px;">
             </div>
 
             <div class="contact-section">
-                <strong>Contacto 2</strong>
+                <strong>Contacto No. 2</strong>
                 <div class="grid-2" style="margin-top:5px;">
                     <input type="text" id="c2-nombre" required placeholder="Nombre">
                     <input type="text" id="c2-parentesco" required placeholder="Parentesco">
                 </div>
-                <input type="tel" id="c2-telefono" required placeholder="Teléfono" style="margin-top:5px;">
+                <input type="tel" id="c2-telefono" required placeholder="Número de teléfono" style="margin-top:5px;">
             </div>
 
             <div class="notice-box">
-                <strong>Aviso de Privacidad:</strong> Tus datos médicos son sensibles, protegidos. Solo se usan para emergencias. Al registrarte aceptas este aviso. <br> <strong>Terminos:</strong> "Información bajo responsabilidad del usuario; no sustituye atención médica".
+                <strong>Aviso de Privacidad:</strong> Tus datos médicos son sensibles, protegidos. Solo se usan para emergencias. Al registrarte aceptas este aviso. <br>
+                <strong>Términos:</strong> "Información bajo responsabilidad del usuario; no sustituye atención médica".
             </div>
 
-            <button type="submit" style="background-color: var(--primary-color);">Generar Llavero QR</button>
+            <button type="submit" style="background-color: var(--primary-color); color: white;">Generar Llavero QR</button>
         </form>
-        
-        
     </div>
 
     <div id="view-qr" class="hidden">
@@ -139,15 +264,28 @@
         <div class="qr-container">
             <div id="qrcode"></div>
             <p style="font-size: 13px; color: #555; margin-top: 15px; max-width: 90%;">
+                El código QR contiene los datos encriptados listos para ser leídos por el panel de emergencias.
             </p>
         </div>
 
-        <button onclick="regresarAFormulario(true)" style="background-color: var(--success-color); margin-top: 10px;">Registrar Otro Nuevo</button>
+        <button onclick="regresarAFormulario(true)" style="background-color: var(--success-color); color: white; margin-top: 10px;">Registrar Otro Nuevo</button>
     </div>
 
 </div>
 
 <script>
+    // Función interactiva para cambiar de pestañas informativas
+    function switchTab(event, tabId) {
+        const tabs = document.querySelectorAll('.tab-content');
+        const buttons = document.querySelectorAll('.tab-btn');
+        
+        tabs.forEach(tab => tab.classList.remove('active'));
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
     function guardarYGenerar(event) {
         event.preventDefault();
 
@@ -179,8 +317,7 @@
         
         document.getElementById("qrcode").innerHTML = "";
 
-        // 3. Extracción de ruta dinámica inteligente (Soporta USB 'file:' e Internet 'http/https')
-        const rutaLimpia = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        // 3. Extracción de ruta dinámica inteligente
         const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + datosEncriptados;
 
         // 4. Generación del QR optimizado para escaneos rápidos
@@ -194,13 +331,14 @@
         // Alternar vistas de la interfaz
         document.getElementById('view-form').classList.add('hidden');
         document.getElementById('view-qr').classList.remove('hidden');
+        window.scrollTo(0, 0);
     }
 
     function regresarAFormulario(limpiar) {
-        // Si se pide registrar uno nuevo, el formulario se limpia automáticamente
         if (limpiar) document.querySelector('form').reset();
         document.getElementById('view-qr').classList.add('hidden');
         document.getElementById('view-form').classList.remove('hidden');
+        window.scrollTo(0, 0);
     }
 </script>
 </body>
