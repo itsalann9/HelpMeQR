@@ -20,10 +20,12 @@
             --color-primario: #3b82f6;
             --color-urgencia: #ef4444;
             --color-exito: #10b981;
+            --color-alerta: #f59e0b;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-principal); color: var(--texto-blanco); margin: 0; padding: 0; min-height: 100vh; }
         
         .emergency-banner { background-color: var(--color-urgencia); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; position: sticky; top:0; z-index:10; }
+        .emergency-banner.suspended { background-color: var(--color-alerta); }
         
         .panel-qr-box { background: var(--bg-tarjeta); padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 15px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; }
         .panel-qr-box #qrcode { background: white; padding: 10px; border-radius: 8px; display: inline-block; }
@@ -37,11 +39,15 @@
         .main-content { padding: 15px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .search-input { width: 100%; padding: 12px; background: var(--bg-tarjeta); border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 15px; box-sizing: border-box; }
         
-        .paciente-card { background: var(--bg-tarjeta); border-radius: 14px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--color-primario); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .paciente-card { background: var(--bg-tarjeta); border-radius: 14px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--color-primario); box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: opacity 0.3s ease; }
         .paciente-card.escaneado { border-left-color: var(--color-urgencia); margin-top: 15px;}
+        .paciente-card.suspendido { border-left-color: var(--color-alerta); opacity: 0.6; }
+        
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
         .paciente-nombre { font-size: 18px; font-weight: bold; margin: 0; }
         .badge-sangre { background: var(--color-urgencia); padding: 4px 10px; border-radius: 6px; font-weight: bold; }
+        .badge-suspendido { background: var(--color-alerta); color: #000; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        
         .info-grid { display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px; }
         .info-item { background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; }
         .info-label { font-size: 11px; color: var(--texto-gris); font-weight: bold; text-transform: uppercase; }
@@ -49,14 +55,24 @@
         .contacto-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 5px 0; }
         .btn-llamar { background: var(--color-exito); color: white; text-decoration: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
         
-        /* Contenedor que se descargará (Diseño limpio: Nombre arriba, QR abajo) */
         .descarga-qr-wrapper { background: white; padding: 15px; border-radius: 8px; display: inline-block; margin-top: 10px; }
         .descarga-qr-wrapper p { color: #0f172a; font-weight: bold; margin: 0 0 10px 0; font-size: 14px; text-align: center; font-family: sans-serif; }
         
         .admin-qr-section { text-align: center; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 10px; }
         
+        .admin-actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #334155; }
+        .btn-action { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; transition: background 0.2s; }
+        .btn-baja { background: var(--color-alerta); color: #000; }
+        .btn-baja:hover { background: #d97706; }
+        .btn-reactivar { background: var(--color-exito); color: white; }
+        .btn-reactivar:hover { background: #059669; }
+        .btn-eliminar { background: var(--color-urgencia); color: white; }
+        .btn-eliminar:hover { background: #dc2626; }
+
         .btn-descargar { background: var(--color-primario); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; }
         .btn-descargar:hover { background: #2563eb; }
+
+        .error-screen { text-align: center; padding: 40px 20px; background: var(--bg-tarjeta); border-radius: 14px; margin-top: 50px; border: 1px solid var(--color-alerta); }
 
         .hidden { display: none !important; }
     </style>
@@ -64,10 +80,15 @@
 <body>
 
     <div id="doctor-view" class="hidden">
-        <div class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
+        <div id="banner-medico" class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
         <div class="main-content">
             <div id="contenedor-qr-llavero"></div>
             <div id="contenedor-qr-directo"></div>
+            <div id="contenedor-error-medico" class="error-screen hidden">
+                <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+                <h2 style="color: var(--color-alerta); margin-top: 0;">Código QR Suspendido</h2>
+                <p style="color: var(--texto-gris);">Esta ficha médica ha sido dada de baja temporalmente por el administrador o el cliente.</p>
+            </div>
         </div>
     </div>
 
@@ -96,25 +117,19 @@
 <script>
     const CLAVE_EMPRESA = "12345";
     
-    // ==========================================
-    // ⚠️ CONFIGURACIÓN DE FIREBASE (PARA ESTAR EN LÍNEA)
-    // ==========================================
-    // Reemplaza este objeto con las credenciales de tu proyecto de Firebase Console
     const firebaseConfig = {
-  apiKey: "AIzaSyDsJntj607OOFzopWOIvV47S8XYNr-5434",
-  authDomain: "helpmeqr-3209e.firebaseapp.com",
-  databaseURL: "https://helpmeqr-3209e-default-rtdb.firebaseio.com",
-  projectId: "helpmeqr-3209e",
-  storageBucket: "helpmeqr-3209e.firebasestorage.app",
-  messagingSenderId: "323065354412",
-  appId: "1:323065354412:web:99c3f26ae50286abd42709"
-};
+        apiKey: "AIzaSyDsJntj607OOFzopWOIvV47S8XYNr-5434",
+        authDomain: "helpmeqr-3209e.firebaseapp.com",
+        databaseURL: "https://helpmeqr-3209e-default-rtdb.firebaseio.com",
+        projectId: "helpmeqr-3209e",
+        storageBucket: "helpmeqr-3209e.firebasestorage.app",
+        messagingSenderId: "323065354412",
+        appId: "1:323065354412:web:99c3f26ae50286abd42709"
+    };
     
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Variable global para almacenar los usuarios descargados de la nube
     let usuariosGlobales = [];
 
     window.onload = function() {
@@ -126,39 +141,29 @@
             try {
                 const paciente = JSON.parse(decodeURIComponent(escape(atob(scanData))));
                 document.getElementById('doctor-view').classList.remove('hidden');
-                document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(paciente, true);
 
-                if (debeMostrarQR === "true") {
-                    document.getElementById('contenedor-qr-llavero').innerHTML = `
-                        <div class="panel-qr-box">
-                            <h3 style="color: var(--color-exito); margin-top:0; margin-bottom:10px;">¡Llavero Vinculado Exitosamente!</h3>
-                            
-                            <div class="descarga-qr-wrapper" id="wrapper-qr-llavero">
-                                <p>${paciente.nombre.toUpperCase()}</p>
-                                <div id="qrcode"></div>
-                            </div>
-                            
-                            <button class="btn-descargar" onclick="descargarCodigoQR('wrapper-qr-llavero', '${paciente.nombre}')">
-                                📥 Descargar QR Imprimible
-                            </button>
-                            
-                            <p style="font-size: 13px; color: var(--texto-gris); margin-top: 10px; margin-bottom:0; max-width: 90%;">
-                                Código listo para imprimir o grabar en la resina de este usuario.
-                            </p>
-                        </div>
-                    `;
+                // Verificamos en Firebase en tiempo real si el usuario no está suspendido o eliminado
+                db.ref('usuariosHelpMe').orderByChild('id').equalTo(paciente.id).once('value', (snapshot) => {
+                    let datosNube = null;
+                    snapshot.forEach(childSnapshot => {
+                        datosNube = childSnapshot.val();
+                    });
 
-                    const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + scanData;
+                    // Si en la nube sale como suspendido, bloqueamos la vista médica
+                    if (datosNube && datosNube.estado === "suspendido") {
+                        document.getElementById('banner-medico').classList.add('suspended');
+                        document.getElementById('banner-medico').innerText = "⚠️ SERVICIO SUSPENDIDO";
+                        document.getElementById('contenedor-error-medico').classList.remove('hidden');
+                    } else {
+                        // Flujo normal si está activo o no se encuentra en la base (offline fallback)
+                        document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(datosNube || paciente, true);
+                        
+                        if (debeMostrarQR === "true") {
+                            mostrarSeccionLlavero(paciente, scanData);
+                        }
+                    }
+                });
 
-                    setTimeout(() => {
-                        new QRCode(document.getElementById("qrcode"), {
-                            text: urlDestinoQR,
-                            width: 180,
-                            height: 180,
-                            correctLevel : QRCode.CorrectLevel.M
-                        });
-                    }, 50);
-                }
             } catch (e) {
                 console.error(e);
                 alert("Error al leer o procesar el código QR.");
@@ -168,13 +173,40 @@
         }
     }
 
+    function mostrarSeccionLlavero(paciente, scanData) {
+        document.getElementById('contenedor-qr-llavero').innerHTML = `
+            <div class="panel-qr-box">
+                <h3 style="color: var(--color-exito); margin-top:0; margin-bottom:10px;">¡Llavero Vinculado Exitosamente!</h3>
+                <div class="descarga-qr-wrapper" id="wrapper-qr-llavero">
+                    <p>${paciente.nombre.toUpperCase()}</p>
+                    <div id="qrcode"></div>
+                </div>
+                <button class="btn-descargar" onclick="descargarCodigoQR('wrapper-qr-llavero', '${paciente.nombre}')">
+                    📥 Descargar QR Imprimible
+                </button>
+                <p style="font-size: 13px; color: var(--texto-gris); margin-top: 10px; margin-bottom:0; max-width: 90%;">
+                    Código listo para imprimir o grabar en la resina de este usuario.
+                </p>
+            </div>
+        `;
+
+        const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + scanData;
+
+        setTimeout(() => {
+            new QRCode(document.getElementById("qrcode"), {
+                text: urlDestinoQR,
+                width: 180,
+                height: 180,
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        }, 50);
+    }
+
     function validarPassword() {
         const pass = document.getElementById('admin-pass').value;
         if (pass === CLAVE_EMPRESA) {
             document.getElementById('lock-screen').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
-            
-            // Escuchar cambios de Firebase en tiempo real
             escucharBaseDeDatos();
         } else {
             document.getElementById('error-txt').classList.remove('hidden');
@@ -182,14 +214,12 @@
         }
     }
 
-    // Escucha la base de datos en la nube y actualiza la lista automáticamente si cambian los datos
     function escucharBaseDeDatos() {
         db.ref('usuariosHelpMe').on('value', (snapshot) => {
             usuariosGlobales = [];
             const data = snapshot.val();
             
             if (data) {
-                // Convertir el objeto de Firebase en un Array estructurado
                 Object.keys(data).forEach(key => {
                     usuariosGlobales.push({ firebaseKey: key, ...data[key] });
                 });
@@ -211,7 +241,6 @@
             contenedor.innerHTML += generarCardHTML(p, false);
         });
 
-        // Generar los códigos QR para cada tarjeta renderizada
         lista.forEach(p => {
             generarQRAdmin(p);
         });
@@ -219,7 +248,11 @@
 
     function generarQRAdmin(u) {
         try {
-            const jsonString = btoa(unescape(encodeURIComponent(JSON.stringify(u))));
+            // Quitamos la key interna de Firebase antes de codificar el QR estático para mantenerlo limpio
+            const usuarioLimpio = { ...u };
+            delete usuarioLimpio.firebaseKey;
+            
+            const jsonString = btoa(unescape(encodeURIComponent(JSON.stringify(usuarioLimpio))));
             const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + jsonString;
             
             const elementoQR = document.getElementById(`qr-admin-${u.id}`);
@@ -237,14 +270,16 @@
     }
 
     function generarCardHTML(u, esEscaneoMedico) {
+        const esSuspendido = u.estado === "suspendido";
+        
         return `
-            <div class="paciente-card ${esEscaneoMedico ? 'escaneado' : ''}">
+            <div class="paciente-card ${esEscaneoMedico ? 'escaneado' : ''} ${esSuspendido ? 'suspendido' : ''}">
                 <div class="card-header">
                     <div>
                         <p class="paciente-nombre">${u.nombre}</p>
                         <small style="color:var(--texto-gris)">ID: ${u.id} ${u.fecha_registro ? '| Registrado: '+u.fecha_registro : ''}</small>
                     </div>
-                    <div class="badge-sangre">${u.sangre}</div>
+                    ${esSuspendido ? '<div class="badge-suspendido">⚡ INACTIVO</div>' : `<div class="badge-sangre">${u.sangre}</div>`}
                 </div>
                 <div class="info-grid">
                     <div class="info-item"><span class="info-label">Nacimiento:</span><div>${u.nacimiento}</div></div>
@@ -278,9 +313,38 @@
                             📥 Descargar Ficha QR
                         </button>
                     </div>
+                    
+                    <div class="admin-actions">
+                        ${esSuspendido ? 
+                            `<button class="btn-action btn-reactivar" onclick="cambiarEstadoUsuario('${u.firebaseKey}', 'activo')">Reactivar Usuario</button>` : 
+                            `<button class="btn-action btn-baja" onclick="cambiarEstadoUsuario('${u.firebaseKey}', 'suspendido')">Baja Temporal</button>`
+                        }
+                        <button class="btn-action btn-eliminar" onclick="eliminarUsuarioPermanente('${u.firebaseKey}', '${u.nombre}')">Eliminar Ficha</button>
+                    </div>
                 ` : ''}
             </div>
         `;
+    }
+
+    // ==========================================
+    // NUEVAS FUNCIONES DE CONTROL ACCIONES ADMIN
+    // ==========================================
+    function cambiarEstadoUsuario(firebaseKey, nuevoEstado) {
+        db.ref('usuariosHelpMe/' + firebaseKey).update({ estado: nuevoEstado })
+            .then(() => {
+                console.log("Estado actualizado a: " + nuevoEstado);
+            })
+            .catch(err => alert("Error al cambiar estado: " + err.message));
+    }
+
+    function eliminarUsuarioPermanente(firebaseKey, nombre) {
+        if (confirm(`¿Estás completamente seguro de eliminar permanentemente a "${nombre}"? Esta acción borrará su registro de la nube de forma irreversible.`)) {
+            db.ref('usuariosHelpMe/' + firebaseKey).remove()
+                .then(() => {
+                    alert("Usuario eliminado correctamente de la base de datos.");
+                })
+                .catch(err => alert("Error al eliminar: " + err.message));
+        }
     }
 
     function filtrarClientes() {
@@ -289,13 +353,9 @@
         renderizarLista(filtrados);
     }
 
-    // ==========================================
-    // NUEVA FUNCIÓN: DESCARGA DE QR COMO IMAGEN
-    // ==========================================
     function descargarCodigoQR(idContenedor, nombrePaciente) {
         const elemento = document.getElementById(idContenedor);
         
-        // Convertimos el bloque HTML (Nombre + QR) en una imagen PNG transparente/limpia
         html2canvas(elemento, { scale: 3, useCORS: true }).then(canvas => {
             const enlace = document.createElement('a');
             enlace.download = `QR_${nombrePaciente.replace(/\s+/g, '_')}.png`;
