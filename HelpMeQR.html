@@ -314,10 +314,6 @@
         const rutaActual = window.location.href;
         const posicionUltimaBarra = rutaActual.lastIndexOf('/');
         const directorioBase = rutaActual.substring(0, posicionUltimaBarra + 1);
-        
-        setTimeout(() => {
-            window.location.href = directorioBase + "panel.html?medico_scan=" + datosEncriptados + "&mostrar_qr=true";
-        }, 1500); 
     }
 </script>
 </body>
