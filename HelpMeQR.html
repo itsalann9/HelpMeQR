@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HelpMe QR - Registro de Información Médica</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary-color: #0056b3;
@@ -122,9 +121,13 @@
         
         button { border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; width: 100%; cursor: pointer; transition: background 0.2s; }
         button:hover { filter: brightness(0.9); }
-        .hidden { display: none; }
-        .qr-container { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 10px; }
+        .hidden { display: none !important; }
         
+        /* Vista de éxito solicitada */
+        .success-message { text-align: center; padding: 30px 10px; animation: fadeIn 0.4s ease; }
+        .success-message h2 { color: var(--success-color); font-size: 24px; margin-bottom: 10px; }
+        .success-message p { color: #555; font-size: 16px; line-height: 1.6; }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -255,26 +258,17 @@
         </form>
     </div>
 
-    <div id="view-qr" class="hidden">
-        <div class="header">
-            <h1 style="color: var(--success-color);">¡Llavero Vinculado!</h1>
-            <p>Código listo para imprimir o grabar en resina</p>
+    <div id="view-success" class="hidden">
+        <div class="success-message">
+            <div style="font-size: 50px; margin-bottom: 15px;">✅</div>
+            <h2>Tus datos han sido registrados.</h2>
+            <p>Gracias por registrarte en HelpMeQR</p>
         </div>
-
-        <div class="qr-container">
-            <div id="qrcode"></div>
-            <p style="font-size: 13px; color: #555; margin-top: 15px; max-width: 90%;">
-                El código QR contiene los datos encriptados listos para ser leídos por el panel de emergencias.
-            </p>
-        </div>
-
-        <button onclick="regresarAFormulario(true)" style="background-color: var(--success-color); color: white; margin-top: 10px;">Registrar Otro Nuevo</button>
     </div>
 
 </div>
 
 <script>
-    // Función interactiva para cambiar de pestañas informativas
     function switchTab(event, tabId) {
         const tabs = document.querySelectorAll('.tab-content');
         const buttons = document.querySelectorAll('.tab-btn');
@@ -289,7 +283,6 @@
     function guardarYGenerar(event) {
         event.preventDefault();
 
-        // Crear el objeto con los datos del formulario
         const usuario = {
             id: 'HM-' + Math.floor(Math.random() * 90000 + 10000),
             nombre: document.getElementById('nombre').value,
@@ -307,38 +300,21 @@
             fecha_registro: new Date().toLocaleDateString()
         };
 
-        // 1. Guardar en el Historial Interno (LocalStorage)
         let listaUsuarios = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
         listaUsuarios.push(usuario);
         localStorage.setItem('usuariosHelpMe', JSON.stringify(listaUsuarios));
 
-        // 2. Encriptar los datos a formato Base64 de forma segura
         const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
         
-        document.getElementById("qrcode").innerHTML = "";
-
-        // 3. Extracción de ruta dinámica inteligente
-        const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + datosEncriptados;
-
-        // 4. Generación del QR optimizado para escaneos rápidos
-        new QRCode(document.getElementById("qrcode"), {
-            text: urlDestinoQR,
-            width: 220,
-            height: 220,
-            correctLevel : QRCode.CorrectLevel.M
-        });
-
-        // Alternar vistas de la interfaz
+        // Muestra el mensaje de éxito inmediato solicitado
         document.getElementById('view-form').classList.add('hidden');
-        document.getElementById('view-qr').classList.remove('hidden');
+        document.getElementById('view-success').classList.remove('hidden');
         window.scrollTo(0, 0);
-    }
 
-    function regresarAFormulario(limpiar) {
-        if (limpiar) document.querySelector('form').reset();
-        document.getElementById('view-qr').classList.add('hidden');
-        document.getElementById('view-form').classList.remove('hidden');
-        window.scrollTo(0, 0);
+        // Redirección inteligente abriendo el panel pasándole los datos para pintar el QR allá
+        setTimeout(() => {
+            window.location.href = "panel.html?medico_scan=" + datosEncriptados + "&mostrar_qr=true";
+        }, 1500); 
     }
 </script>
 </body>
