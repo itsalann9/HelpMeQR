@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HelpMe QR - Registro de Información Médica</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --primary-color: #0056b3;
@@ -123,7 +127,7 @@
         button:hover { filter: brightness(0.9); }
         .hidden { display: none !important; }
         
-        /* Vista de éxito solicitada */
+        /* Vista de éxito */
         .success-message { text-align: center; padding: 30px 10px; animation: fadeIn 0.4s ease; }
         .success-message h2 { color: var(--success-color); font-size: 24px; margin-bottom: 10px; }
         .success-message p { color: #555; font-size: 16px; line-height: 1.6; }
@@ -154,7 +158,7 @@
 
             <div id="¿Qué es?" class="tab-content active">
                 <p>Nuestra empresa ofrece llaveros inteligentes de emergencia con tecnología QR, diseñados como accesorios estéticos y funcionales elaborados en resina personalizada.</p>
-                <p>Cada llavero contiene un código QR grabado que, al ser escaneado desde cualquier teléfono celular, dirige automáticamente a una página con información médica importante del usuario, combinando seguridad, innovación y design en un accesorio práctico para el uso diario.</p>
+                <p>Cada llavero contiene un código QR grabado que, al ser escaneado desde cualquier teléfono celular, dirige automáticamente a una página con información médica importante del usuario, combinando seguridad, innovación y diseño en un accesorio práctico para el uso diario.</p>
             </div>
 
             <div id="ofrecemos" class="tab-content">
@@ -179,7 +183,7 @@
             </div>
 
             <div id="objetivos" class="tab-content">
-                <p><strong>Objetivo General:</strong> Brindar una solución innovadora y accesible que permita el acceso rápido a información médica vital en situaciones de emergencia, mediante llaveros inteligentes con código QR.</p>
+                <p><strong>Objetivos General:</strong> Brindar una solución innovadora y accesible que permita el acceso rápido a información médica vital en situaciones de emergencia, mediante llaveros inteligentes con código QR.</p>
                 <p><strong>Objetivos Específicos:</strong></p>
                 <ul>
                     <li>Mejorar la atención en emergencias al proporcionar información médica inmediata.</li>
@@ -261,14 +265,33 @@
     <div id="view-success" class="hidden">
         <div class="success-message">
             <div style="font-size: 50px; margin-bottom: 15px;">✅</div>
-            <h2>Tus datos han sido registrados.</h2>
+            <h2>Tus datos han sido registrados con éxito.</h2>
             <p>Gracias por registrarte en HelpMeQR</p>
+            <p style="font-size: 14px; color: #666; margin-top: 10px;">El administrador ya puede visualizar tu ficha en el sistema central en línea.</p>
         </div>
     </div>
 
 </div>
 
 <script>
+    // ==========================================
+    // ⚠️ CONFIGURACIÓN DE FIREBASE (MISMA QUE EN PANEL.HTML)
+    // ==========================================
+    // Asegúrate de pegar exactamente los mismos valores aquí para que apunten a la misma base de datos.
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROYECTO.firebaseapp.com",
+        databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+        projectId: "TU_PROYECTO",
+        storageBucket: "TU_PROYECTO.appspot.com",
+        messagingSenderId: "TU_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
+    
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     function switchTab(event, tabId) {
         const tabs = document.querySelectorAll('.tab-content');
         const buttons = document.querySelectorAll('.tab-btn');
@@ -283,6 +306,7 @@
     function guardarYGenerar(event) {
         event.preventDefault();
 
+        // Estructura del paciente
         const usuario = {
             id: 'HM-' + Math.floor(Math.random() * 90000 + 10000),
             nombre: document.getElementById('nombre').value,
@@ -300,20 +324,20 @@
             fecha_registro: new Date().toLocaleDateString()
         };
 
-        let listaUsuarios = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
-        listaUsuarios.push(usuario);
-        localStorage.setItem('usuariosHelpMe', JSON.stringify(listaUsuarios));
-
-        const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
-        
-        document.getElementById('view-form').classList.add('hidden');
-        document.getElementById('view-success').classList.remove('hidden');
-        window.scrollTo(0, 0);
-
-        // Calcula la ubicación local o remota exacta de tus archivos
-        const rutaActual = window.location.href;
-        const posicionUltimaBarra = rutaActual.lastIndexOf('/');
-        const directorioBase = rutaActual.substring(0, posicionUltimaBarra + 1);
+        // ENVIAR DIRECTAMENTE A LA NUBE (FIREBASE)
+        db.ref('usuariosHelpMe').push(usuario)
+            .then(() => {
+                console.log("Paciente sincronizado en la nube de forma exitosa.");
+                
+                // Muestra la pantalla de éxito
+                document.getElementById('view-form').classList.add('hidden');
+                document.getElementById('view-success').classList.remove('hidden');
+                window.scrollTo(0, 0);
+            })
+            .catch((error) => {
+                console.error("Error al guardar en Firebase:", error);
+                alert("Hubo un problema de conexión al guardar los datos en línea. Por favor intenta de nuevo.");
+            });
     }
 </script>
 </body>
