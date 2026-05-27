@@ -194,7 +194,7 @@
             </div>
         </div>
 
-        <form onsubmit="guardarYGenerar(event)">
+        <form id="medical-form" onsubmit="guardarYGenerar(event)">
             <h3>Datos Personales</h3>
             <div class="form-group">
                 <label>Nombre Completo:</label>
@@ -268,6 +268,10 @@
             <h2>Tus datos han sido registrados con éxito.</h2>
             <p>Gracias por registrarte en HelpMeQR</p>
             <p style="font-size: 14px; color: #666; margin-top: 10px;">El administrador ya puede visualizar tu ficha en el sistema central en línea.</p>
+            
+            <button onclick="regresarAlFormulario()" style="background-color: var(--success-color); color: white; margin-top: 20px; max-width: 250px;">
+                Registrar otro usuario
+            </button>
         </div>
     </div>
 
@@ -277,16 +281,15 @@
     // ==========================================
     // ⚠️ CONFIGURACIÓN DE FIREBASE (MISMA QUE EN PANEL.HTML)
     // ==========================================
-    // Asegúrate de pegar exactamente los mismos valores aquí para que apunten a la misma base de datos.
     const firebaseConfig = {
-  apiKey: "AIzaSyDsJntj607OOFzopWOIvV47S8XYNr-5434",
-  authDomain: "helpmeqr-3209e.firebaseapp.com",
-  databaseURL: "https://helpmeqr-3209e-default-rtdb.firebaseio.com",
-  projectId: "helpmeqr-3209e",
-  storageBucket: "helpmeqr-3209e.firebasestorage.app",
-  messagingSenderId: "323065354412",
-  appId: "1:323065354412:web:99c3f26ae50286abd42709"
-};
+      apiKey: "AIzaSyDsJntj607OOFzopWOIvV47S8XYNr-5434",
+      authDomain: "helpmeqr-3209e.firebaseapp.com",
+      databaseURL: "https://helpmeqr-3209e-default-rtdb.firebaseio.com",
+      projectId: "helpmeqr-3209e",
+      storageBucket: "helpmeqr-3209e.firebasestorage.app",
+      messagingSenderId: "323065354412",
+      appId: "1:323065354412:web:99c3f26ae50286abd42709"
+    };
     
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
@@ -338,6 +341,19 @@
                 console.error("Error al guardar en Firebase:", error);
                 alert("Hubo un problema de conexión al guardar los datos en línea. Por favor intenta de nuevo.");
             });
+    }
+
+    // NUEVA FUNCIÓN PARA LIMPIAR Y REGRESAR
+    function regresarAlFormulario() {
+        // Resetea todos los campos del formulario de manera limpia
+        document.getElementById('medical-form').reset();
+
+        // Intercambia las vistas de nuevo
+        document.getElementById('view-success').classList.add('hidden');
+        document.getElementById('view-form').classList.remove('hidden');
+        
+        // Sube el scroll al inicio de la página
+        window.scrollTo(0, 0);
     }
 </script>
 </body>
