@@ -18,25 +18,20 @@
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-principal); color: var(--texto-blanco); margin: 0; padding: 0; min-height: 100vh; }
         
-        /* Vista de Urgencia Médica Directa (Sin contraseña) */
         .emergency-banner { background-color: var(--color-urgencia); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; position: sticky; top:0; z-index:10; }
         
-        /* Contenedor del QR dentro del Panel */
         .panel-qr-box { background: var(--bg-tarjeta); padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 15px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; }
         .panel-qr-box #qrcode { background: white; padding: 10px; border-radius: 8px; display: inline-block; }
 
-        /* Pantalla de bloqueo (Solo para ver la lista de clientes registrados) */
         .login-screen { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-principal); z-index: 9999; padding: 20px; box-sizing: border-box; }
         .login-card { background: var(--bg-tarjeta); padding: 30px 20px; border-radius: 16px; text-align: center; width: 100%; max-width: 350px; }
         .login-card input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: var(--bg-input); color: white; text-align: center; margin-bottom: 15px; font-size: 16px; box-sizing: border-box;}
         .login-card button { width: 100%; padding: 12px; background: var(--color-primario); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        /* Interfaz Base */
         .navbar { background: var(--bg-tarjeta); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .main-content { padding: 15px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .search-input { width: 100%; padding: 12px; background: var(--bg-tarjeta); border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 15px; box-sizing: border-box; }
         
-        /* Tarjetas Fichas de Pacientes */
         .paciente-card { background: var(--bg-tarjeta); border-radius: 14px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--color-primario); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .paciente-card.escaneado { border-left-color: var(--color-urgencia); margin-top: 15px;}
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
@@ -48,6 +43,11 @@
         .contactos-box { margin-top: 12px; background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 8px; }
         .contacto-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 5px 0; }
         .btn-llamar { background: var(--color-exito); color: white; text-decoration: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+        
+        /* Nuevo estilo para el QR dentro de la lista del administrador */
+        .admin-qr-container { background: white; padding: 8px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+        .admin-qr-section { text-align: center; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 10px; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -57,7 +57,6 @@
         <div class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
         <div class="main-content">
             <div id="contenedor-qr-llavero"></div>
-            
             <div id="contenedor-qr-directo"></div>
         </div>
     </div>
@@ -84,7 +83,7 @@
         </div>
     </div>
 
-<script {cite: uploaded:panel.html}>
+<script>
     const CLAVE_EMPRESA = "12345";
 
     window.onload = function() {
@@ -98,7 +97,6 @@
                 document.getElementById('doctor-view').classList.remove('hidden');
                 document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(paciente, true);
 
-                // Si detectamos el parámetro 'mostrar_qr=true', inyectamos el div y pintamos el QR
                 if (debeMostrarQR === "true") {
                     document.getElementById('contenedor-qr-llavero').innerHTML = `
                         <div class="panel-qr-box">
@@ -110,10 +108,8 @@
                         </div>
                     `;
 
-                    // URL absoluta de producción para que el QR escaneado en llaveros físicos funcione en internet
                     const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + scanData;
 
-                    // El delay de 50ms previene que la librería intente dibujar sobre un div que aún no termina de cargar en el DOM
                     setTimeout(() => {
                         new QRCode(document.getElementById("qrcode"), {
                             text: urlDestinoQR,
@@ -157,6 +153,32 @@
         lista.forEach(p => {
             contenedor.innerHTML += generarCardHTML(p, false);
         });
+
+        // Generar los códigos QR para cada tarjeta renderizada
+        lista.forEach(p => {
+            generarQRAdmin(p);
+        });
+    }
+
+    // Nueva función para renderizar el QR correspondiente en el historial
+    function generarQRAdmin(u) {
+        try {
+            // Reconstruimos la cadena Base64 tal como lo hace el sistema al registrar
+            const jsonString = btoa(unescape(encodeURIComponent(JSON.stringify(u))));
+            const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + jsonString;
+            
+            const elementoQR = document.getElementById(`qr-admin-${u.id}`);
+            if (elementoQR) {
+                new QRCode(elementoQR, {
+                    text: urlDestinoQR,
+                    width: 130,
+                    height: 130,
+                    correctLevel : QRCode.CorrectLevel.M
+                });
+            }
+        } catch (error) {
+            console.error("Error generando QR para el usuario: " + u.id, error);
+        }
     }
 
     function generarCardHTML(u, esEscaneoMedico) {
@@ -186,6 +208,14 @@
                         <a href="tel:${u.c2_telefono}" class="btn-llamar">📞 Llamar</a>
                     </div>
                 </div>
+                
+                ${!esEscaneoMedico ? `
+                    <div class="admin-qr-section">
+                        <span class="info-label" style="color: var(--color-exito)">Código QR del Cliente</span>
+                        <br>
+                        <div class="admin-qr-container" id="qr-admin-${u.id}"></div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -197,8 +227,14 @@
         contenedor.innerHTML = "";
 
         const filtrados = lista.filter(u => u.nombre.toLowerCase().includes(query));
+        
         filtrados.forEach(p => {
             contenedor.innerHTML += generarCardHTML(p, false);
+        });
+
+        // Regenerar los QR solo para los clientes filtrados
+        filtrados.forEach(p => {
+            generarQRAdmin(p);
         });
     }
 </script>
