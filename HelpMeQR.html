@@ -44,6 +44,7 @@
         .header h1 { color: var(--primary-color); margin: 0; font-size: 28px; }
         .header p { margin: 5px 0 0 0; color: #666; font-size: 15px; font-style: italic; }
         
+        /* Secciones de Información de la Empresa */
         .info-section {
             background: #fff;
             border: 1px solid #e2e8f0;
@@ -107,6 +108,7 @@
             border-left: 4px solid var(--primary-color);
         }
 
+        /* Estilos del Formulario */
         h3 { color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; margin-top: 25px; font-size: 18px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; }
@@ -121,6 +123,7 @@
         button:hover { filter: brightness(0.9); }
         .hidden { display: none !important; }
         
+        /* Vista de éxito solicitada */
         .success-message { text-align: center; padding: 30px 10px; animation: fadeIn 0.4s ease; }
         .success-message h2 { color: var(--success-color); font-size: 24px; margin-bottom: 10px; }
         .success-message p { color: #555; font-size: 16px; line-height: 1.6; }
@@ -151,7 +154,7 @@
 
             <div id="¿Qué es?" class="tab-content active">
                 <p>Nuestra empresa ofrece llaveros inteligentes de emergencia con tecnología QR, diseñados como accesorios estéticos y funcionales elaborados en resina personalizada.</p>
-                <p>Cada llavero contiene un código QR grabado que, al ser escaneado desde cualquier teléfono celular, dirige automáticamente a una página con información médica importante del usuario, combinando seguridad, innovación y diseño en un accesorio práctico para el uso diario.</p>
+                <p>Cada llavero contiene un código QR grabado que, al ser escaneado desde cualquier teléfono celular, dirige automáticamente a una página con información médica importante del usuario, combinando seguridad, innovación y design en un accesorio práctico para el uso diario.</p>
             </div>
 
             <div id="ofrecemos" class="tab-content">
@@ -307,6 +310,7 @@
         document.getElementById('view-success').classList.remove('hidden');
         window.scrollTo(0, 0);
 
+        // Calcula la ubicación local o remota exacta de tus archivos
         const rutaActual = window.location.href;
         const posicionUltimaBarra = rutaActual.lastIndexOf('/');
         const directorioBase = rutaActual.substring(0, posicionUltimaBarra + 1);
