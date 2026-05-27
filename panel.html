@@ -18,20 +18,25 @@
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-principal); color: var(--texto-blanco); margin: 0; padding: 0; min-height: 100vh; }
         
+        /* Vista de Urgencia Médica Directa (Sin contraseña) */
         .emergency-banner { background-color: var(--color-urgencia); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; position: sticky; top:0; z-index:10; }
         
+        /* Contenedor del QR dentro del Panel */
         .panel-qr-box { background: var(--bg-tarjeta); padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 15px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; }
         .panel-qr-box #qrcode { background: white; padding: 10px; border-radius: 8px; display: inline-block; }
 
+        /* Pantalla de bloqueo (Solo para ver la lista de clientes registrados) */
         .login-screen { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-principal); z-index: 9999; padding: 20px; box-sizing: border-box; }
         .login-card { background: var(--bg-tarjeta); padding: 30px 20px; border-radius: 16px; text-align: center; width: 100%; max-width: 350px; }
         .login-card input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: var(--bg-input); color: white; text-align: center; margin-bottom: 15px; font-size: 16px; box-sizing: border-box;}
         .login-card button { width: 100%; padding: 12px; background: var(--color-primario); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
+        /* Interfaz Base */
         .navbar { background: var(--bg-tarjeta); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .main-content { padding: 15px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .search-input { width: 100%; padding: 12px; background: var(--bg-tarjeta); border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 15px; box-sizing: border-box; }
         
+        /* Tarjetas Fichas de Pacientes */
         .paciente-card { background: var(--bg-tarjeta); border-radius: 14px; padding: 18px; margin-bottom: 15px; border-left: 5px solid var(--color-primario); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .paciente-card.escaneado { border-left-color: var(--color-urgencia); margin-top: 15px;}
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
@@ -52,6 +57,7 @@
         <div class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
         <div class="main-content">
             <div id="contenedor-qr-llavero"></div>
+            
             <div id="contenedor-qr-directo"></div>
         </div>
     </div>
@@ -78,7 +84,7 @@
         </div>
     </div>
 
-<script>
+<script {cite: uploaded:panel.html}>
     const CLAVE_EMPRESA = "12345";
 
     window.onload = function() {
@@ -92,6 +98,7 @@
                 document.getElementById('doctor-view').classList.remove('hidden');
                 document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(paciente, true);
 
+                // Si detectamos el parámetro 'mostrar_qr=true', inyectamos el div y pintamos el QR
                 if (debeMostrarQR === "true") {
                     document.getElementById('contenedor-qr-llavero').innerHTML = `
                         <div class="panel-qr-box">
@@ -103,8 +110,10 @@
                         </div>
                     `;
 
+                    // URL absoluta de producción para que el QR escaneado en llaveros físicos funcione en internet
                     const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + scanData;
 
+                    // El delay de 50ms previene que la librería intente dibujar sobre un div que aún no termina de cargar en el DOM
                     setTimeout(() => {
                         new QRCode(document.getElementById("qrcode"), {
                             text: urlDestinoQR,
