@@ -44,7 +44,6 @@
         .header h1 { color: var(--primary-color); margin: 0; font-size: 28px; }
         .header p { margin: 5px 0 0 0; color: #666; font-size: 15px; font-style: italic; }
         
-        /* Secciones de Información de la Empresa */
         .info-section {
             background: #fff;
             border: 1px solid #e2e8f0;
@@ -108,7 +107,6 @@
             border-left: 4px solid var(--primary-color);
         }
 
-        /* Estilos del Formulario */
         h3 { color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; margin-top: 25px; font-size: 18px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; }
@@ -123,7 +121,6 @@
         button:hover { filter: brightness(0.9); }
         .hidden { display: none !important; }
         
-        /* Vista de éxito solicitada */
         .success-message { text-align: center; padding: 30px 10px; animation: fadeIn 0.4s ease; }
         .success-message h2 { color: var(--success-color); font-size: 24px; margin-bottom: 10px; }
         .success-message p { color: #555; font-size: 16px; line-height: 1.6; }
@@ -306,14 +303,16 @@
 
         const datosEncriptados = btoa(unescape(encodeURIComponent(JSON.stringify(usuario))));
         
-        // Muestra el mensaje de éxito inmediato solicitado
         document.getElementById('view-form').classList.add('hidden');
         document.getElementById('view-success').classList.remove('hidden');
         window.scrollTo(0, 0);
 
-        // Redirección inteligente abriendo el panel pasándole los datos para pintar el QR allá
+        const rutaActual = window.location.href;
+        const posicionUltimaBarra = rutaActual.lastIndexOf('/');
+        const directorioBase = rutaActual.substring(0, posicionUltimaBarra + 1);
+        
         setTimeout(() => {
-            window.location.href = "panel.html?medico_scan=" + datosEncriptados + "&mostrar_qr=true";
+            window.location.href = directorioBase + "panel.html?medico_scan=" + datosEncriptados + "&mostrar_qr=true";
         }, 1500); 
     }
 </script>
