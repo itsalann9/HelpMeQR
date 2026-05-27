@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HelpMe QR - Sistema Móvil</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --bg-principal: #0f172a;
@@ -44,9 +49,14 @@
         .contacto-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 5px 0; }
         .btn-llamar { background: var(--color-exito); color: white; text-decoration: none; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
         
-        /* Nuevo estilo para el QR dentro de la lista del administrador */
-        .admin-qr-container { background: white; padding: 8px; border-radius: 8px; display: inline-block; margin-top: 12px; }
+        /* Contenedor que se descargará (Diseño limpio: Nombre arriba, QR abajo) */
+        .descarga-qr-wrapper { background: white; padding: 15px; border-radius: 8px; display: inline-block; margin-top: 10px; }
+        .descarga-qr-wrapper p { color: #0f172a; font-weight: bold; margin: 0 0 10px 0; font-size: 14px; text-align: center; font-family: sans-serif; }
+        
         .admin-qr-section { text-align: center; margin-top: 10px; border-top: 1px dashed #334155; padding-top: 10px; }
+        
+        .btn-descargar { background: var(--color-primario); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-descargar:hover { background: #2563eb; }
 
         .hidden { display: none !important; }
     </style>
@@ -74,17 +84,38 @@
 
     <div id="admin-view" class="hidden">
         <div class="navbar">
-            <span style="font-weight:bold;">📋 Registro General de Ventas</span>
+            <span style="font-weight:bold;">📋 Registro General de Ventas (En Línea)</span>
         </div>
         <div class="main-content">
             <input type="text" id="search-box" class="search-input" placeholder="🔍 Buscar cliente por nombre..." oninput="filtrarClientes()">
             <div id="lista-historial"></div>
-            <button onclick="if(confirm('¿Borrar todo?')) {localStorage.removeItem('usuariosHelpMe'); cargarAdmin();}" style="background:none; border: 1px dashed var(--color-urgencia); color:var(--color-urgencia); width:100%; padding:10px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;">Vaciar Historial</button>
+            <button onclick="vaciarHistorialFirebase()" style="background:none; border: 1px dashed var(--color-urgencia); color:var(--color-urgencia); width:100%; padding:10px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;">Vaciar Historial en la Nube</button>
         </div>
     </div>
 
 <script>
     const CLAVE_EMPRESA = "12345";
+    
+    // ==========================================
+    // ⚠️ CONFIGURACIÓN DE FIREBASE (PARA ESTAR EN LÍNEA)
+    // ==========================================
+    // Reemplaza este objeto con las credenciales de tu proyecto de Firebase Console
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROYECTO.firebaseapp.com",
+        databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+        projectId: "TU_PROYECTO",
+        storageBucket: "TU_PROYECTO.appspot.com",
+        messagingSenderId: "TU_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
+    
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Variable global para almacenar los usuarios descargados de la nube
+    let usuariosGlobales = [];
 
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -101,7 +132,16 @@
                     document.getElementById('contenedor-qr-llavero').innerHTML = `
                         <div class="panel-qr-box">
                             <h3 style="color: var(--color-exito); margin-top:0; margin-bottom:10px;">¡Llavero Vinculado Exitosamente!</h3>
-                            <div id="qrcode"></div>
+                            
+                            <div class="descarga-qr-wrapper" id="wrapper-qr-llavero">
+                                <p>${paciente.nombre.toUpperCase()}</p>
+                                <div id="qrcode"></div>
+                            </div>
+                            
+                            <button class="btn-descargar" onclick="descargarCodigoQR('wrapper-qr-llavero', '${paciente.nombre}')">
+                                📥 Descargar QR Imprimible
+                            </button>
+                            
                             <p style="font-size: 13px; color: var(--texto-gris); margin-top: 10px; margin-bottom:0; max-width: 90%;">
                                 Código listo para imprimir o grabar en la resina de este usuario.
                             </p>
@@ -133,20 +173,37 @@
         if (pass === CLAVE_EMPRESA) {
             document.getElementById('lock-screen').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
-            cargarAdmin();
+            
+            // Escuchar cambios de Firebase en tiempo real
+            escucharBaseDeDatos();
         } else {
             document.getElementById('error-txt').classList.remove('hidden');
             document.getElementById('admin-pass').value = '';
         }
     }
 
-    function cargarAdmin() {
-        const lista = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
+    // Escucha la base de datos en la nube y actualiza la lista automáticamente si cambian los datos
+    function escucharBaseDeDatos() {
+        db.ref('usuariosHelpMe').on('value', (snapshot) => {
+            usuariosGlobales = [];
+            const data = snapshot.val();
+            
+            if (data) {
+                // Convertir el objeto de Firebase en un Array estructurado
+                Object.keys(data).forEach(key => {
+                    usuariosGlobales.push({ firebaseKey: key, ...data[key] });
+                });
+            }
+            renderizarLista(usuariosGlobales);
+        });
+    }
+
+    function renderizarLista(lista) {
         const contenedor = document.getElementById('lista-historial');
         contenedor.innerHTML = "";
 
         if (lista.length === 0) {
-            contenedor.innerHTML = "<p style='text-align:center; color:var(--texto-gris);'>No hay clientes registrados en este teléfono.</p>";
+            contenedor.innerHTML = "<p style='text-align:center; color:var(--texto-gris);'>No hay clientes registrados en la nube.</p>";
             return;
         }
 
@@ -160,10 +217,8 @@
         });
     }
 
-    // Nueva función para renderizar el QR correspondiente en el historial
     function generarQRAdmin(u) {
         try {
-            // Reconstruimos la cadena Base64 tal como lo hace el sistema al registrar
             const jsonString = btoa(unescape(encodeURIComponent(JSON.stringify(u))));
             const urlDestinoQR = "https://itsalann9.github.io/HelpMeQR/panel.html?medico_scan=" + jsonString;
             
@@ -171,8 +226,8 @@
             if (elementoQR) {
                 new QRCode(elementoQR, {
                     text: urlDestinoQR,
-                    width: 130,
-                    height: 130,
+                    width: 140,
+                    height: 140,
                     correctLevel : QRCode.CorrectLevel.M
                 });
             }
@@ -213,7 +268,15 @@
                     <div class="admin-qr-section">
                         <span class="info-label" style="color: var(--color-exito)">Código QR del Cliente</span>
                         <br>
-                        <div class="admin-qr-container" id="qr-admin-${u.id}"></div>
+                        
+                        <div class="descarga-qr-wrapper" id="wrapper-${u.id}">
+                            <p>${u.nombre.toUpperCase()}</p>
+                            <div id="qr-admin-${u.id}"></div>
+                        </div>
+                        <br>
+                        <button class="btn-descargar" onclick="descargarCodigoQR('wrapper-${u.id}', '${u.nombre}')">
+                            📥 Descargar Ficha QR
+                        </button>
                     </div>
                 ` : ''}
             </div>
@@ -222,20 +285,34 @@
 
     function filtrarClientes() {
         const query = document.getElementById('search-box').value.toLowerCase();
-        const lista = JSON.parse(localStorage.getItem('usuariosHelpMe')) || [];
-        const contenedor = document.getElementById('lista-historial');
-        contenedor.innerHTML = "";
+        const filtrados = usuariosGlobales.filter(u => u.nombre.toLowerCase().includes(query));
+        renderizarLista(filtrados);
+    }
 
-        const filtrados = lista.filter(u => u.nombre.toLowerCase().includes(query));
+    // ==========================================
+    // NUEVA FUNCIÓN: DESCARGA DE QR COMO IMAGEN
+    // ==========================================
+    function descargarCodigoQR(idContenedor, nombrePaciente) {
+        const elemento = document.getElementById(idContenedor);
         
-        filtrados.forEach(p => {
-            contenedor.innerHTML += generarCardHTML(p, false);
+        // Convertimos el bloque HTML (Nombre + QR) en una imagen PNG transparente/limpia
+        html2canvas(elemento, { scale: 3, useCORS: true }).then(canvas => {
+            const enlace = document.createElement('a');
+            enlace.download = `QR_${nombrePaciente.replace(/\s+/g, '_')}.png`;
+            enlace.href = canvas.toDataURL('image/png');
+            enlace.click();
+        }).catch(err => {
+            console.error("Error al generar la imagen de descarga:", err);
+            alert("No se pudo procesar la descarga en este navegador.");
         });
+    }
 
-        // Regenerar los QR solo para los clientes filtrados
-        filtrados.forEach(p => {
-            generarQRAdmin(p);
-        });
+    function vaciarHistorialFirebase() {
+        if(confirm('¿Estás seguro de que deseas borrar TODOS los pacientes registrados en la nube? Esta acción no se puede deshacer.')) {
+            db.ref('usuariosHelpMe').remove()
+                .then(() => alert("Historial en la nube vaciado correctamente."))
+                .catch(err => alert("Error al vaciar: " + err.message));
+        }
     }
 </script>
 </body>
