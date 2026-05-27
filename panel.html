@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HelpMe QR - Sistema Móvil</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --bg-principal: #0f172a;
@@ -20,6 +21,10 @@
         /* Vista de Urgencia Médica Directa (Sin contraseña) */
         .emergency-banner { background-color: var(--color-urgencia); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; position: sticky; top:0; z-index:10; }
         
+        /* Caja del QR integrado en el Panel */
+        .panel-qr-box { background: var(--bg-tarjeta); padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 15px; border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; }
+        .panel-qr-box #qrcode { background: white; padding: 10px; border-radius: 8px; display: inline-block; }
+
         /* Pantalla de bloqueo (Solo para ver la lista de clientes registrados) */
         .login-screen { display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-principal); z-index: 9999; padding: 20px; box-sizing: border-box; }
         .login-card { background: var(--bg-tarjeta); padding: 30px 20px; border-radius: 16px; text-align: center; width: 100%; max-width: 350px; }
@@ -50,8 +55,11 @@
 
     <div id="doctor-view" class="hidden">
         <div class="emergency-banner">⚠️ INFORMACIÓN MÉDICA DE URGENCIA</div>
-        <div class="main-content" id="contenedor-qr-directo">
-            </div>
+        <div class="main-content">
+            <div id="contenedor-qr-llavero"></div>
+            
+            <div id="contenedor-qr-directo"></div>
+        </div>
     </div>
 
     <div id="lock-screen" class="login-screen hidden">
@@ -82,19 +90,40 @@
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         const scanData = urlParams.get('medico_scan');
+        const debeMostrarQR = urlParams.get('mostrar_qr');
 
         if (scanData) {
-            // ¡CASO QR DETECTADO! Mostrar directo al doctor sin pedir contraseña
             try {
                 const paciente = JSON.parse(decodeURIComponent(escape(atob(scanData))));
                 document.getElementById('doctor-view').classList.remove('hidden');
-                
                 document.getElementById('contenedor-qr-directo').innerHTML = generarCardHTML(paciente, true);
+
+                // Si viene del flujo de registro, pintamos e inicializamos el QR aquí mismo
+                if (debeMostrarQR === "true") {
+                    document.getElementById('contenedor-qr-llavero').innerHTML = `
+                        <div class="panel-qr-box">
+                            <h3 style="color: var(--color-exito); margin-top:0; margin-bottom:10px;">¡Llavero Vinculado Exitosamente!</h3>
+                            <div id="qrcode"></div>
+                            <p style="font-size: 13px; color: var(--texto-gris); margin-top: 10px; margin-bottom:0; max-width: 90%;">
+                                Código listo para imprimir o grabar en la resina de este usuario.
+                            </p>
+                        </div>
+                    `;
+
+                    // Generamos la URL absoluta reconstruyendo los parámetros
+                    const urlDestinoQR = window.location.origin + window.location.pathname + "?medico_scan=" + scanData;
+
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: urlDestinoQR,
+                        width: 180,
+                        height: 180,
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                }
             } catch (e) {
-                alert("Error al leer el código QR Médico.");
+                alert("Error al leer o procesar el código QR.");
             }
         } else {
-            // CASO NORMAL: Es la empresa queriendo ver el historial de registros. Pedir clave.
             document.getElementById('lock-screen').classList.remove('hidden');
         }
     }
